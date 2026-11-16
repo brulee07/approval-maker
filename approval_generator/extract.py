@@ -205,7 +205,7 @@ def extract_quote(path: str, use_ocr: bool = False) -> Quote:
         try:
             import xlrd
         except ImportError as exc:
-            raise UserError(".xls 읽기에 xlrd가 필요합니다. 설치.bat을 실행하거나 .xlsx로 저장해 주세요.") from exc
+            raise UserError(".xls 엑셀 파일을 읽는 구성 요소(xlrd)가 설치되지 않았습니다. 프로그램을 종료한 뒤 같은 폴더의 install.bat을 실행하고 start.bat으로 다시 시작해 주세요.") from exc
         workbook = xlrd.open_workbook(path)
         try:
             for sheet in workbook.sheets():

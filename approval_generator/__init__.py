@@ -7,4 +7,4 @@ _local_packages = Path(__file__).resolve().parent.parent / ".runtime" / "site-pa
 if _local_packages.is_dir():
     sys.path.insert(0, str(_local_packages))
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"

@@ -34,20 +34,34 @@ function Find-Python {
     throw 'Python 3.11+ is required. Install Python from python.org, then run install.bat.'
 }
 
+function Install-AppPackages([string]$BootstrapPython) {
+    $appPython = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
+    if (-not (Test-Path -LiteralPath $appPython)) {
+        Write-Host 'Preparing the application environment...'
+        & $BootstrapPython -m venv (Join-Path $PSScriptRoot '.venv')
+        if ($LASTEXITCODE -ne 0) { throw 'Could not create the Python virtual environment. Check the folder permissions and Python installation.' }
+    }
+    & $appPython -m pip install --disable-pip-version-check -r (Join-Path $PSScriptRoot 'requirements.txt')
+    if ($LASTEXITCODE -ne 0) { throw 'Package installation failed. Check the internet connection, then run install.bat again.' }
+    & $appPython -m approval_generator.dependencies
+    if ($LASTEXITCODE -ne 0) { throw 'Required components are still unavailable. See the message above and run install.bat again.' }
+}
+
 try {
     $runtimePython = Find-Python
     if ($Install) {
-        if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot '.venv\Scripts\python.exe'))) {
-            & $runtimePython -m venv (Join-Path $PSScriptRoot '.venv')
-            if ($LASTEXITCODE -ne 0) { throw 'Could not create the Python virtual environment.' }
-        }
-        $runtimePython = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
-        & $runtimePython -m pip install -r (Join-Path $PSScriptRoot 'requirements.txt')
-        if ($LASTEXITCODE -ne 0) { throw 'Package installation failed. Check the network and Python installation.' }
+        Install-AppPackages $runtimePython
         Write-Host 'Installation complete. Run start.bat.'
     } else {
-        & $runtimePython -c 'import tkinter,openpyxl,pdfplumber,pypdf,reportlab,pypdfium2,PIL,lxml'
-        if ($LASTEXITCODE -ne 0) { throw 'Required packages are missing. Run install.bat first.' }
+        & $runtimePython -m approval_generator.dependencies
+        $dependencyStatus = $LASTEXITCODE
+        if ($dependencyStatus -eq 2) { throw 'Please repair the Python installation as described above.' }
+        if ($dependencyStatus -ne 0) {
+            Write-Host 'Installing required components, including XLS support. Internet access is required.'
+            Write-Host 'Please wait. The application will open when installation finishes.'
+            Install-AppPackages $runtimePython
+            $runtimePython = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
+        }
         & $runtimePython (Join-Path $PSScriptRoot 'main.py')
         if ($LASTEXITCODE -ne 0) { throw 'The application stopped with an error. See the message above.' }
     }

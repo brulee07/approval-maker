@@ -14,7 +14,7 @@ def read_xls(path):
     try:
         import xlrd
     except ImportError as exc:
-        raise UserError("XLS 파일을 읽으려면 install.bat으로 xlrd를 설치해 주세요.") from exc
+        raise UserError(".xls 엑셀 파일을 읽는 구성 요소(xlrd)가 설치되지 않았습니다. 프로그램을 종료한 뒤 같은 폴더의 install.bat을 실행하고 start.bat으로 다시 시작해 주세요.") from exc
     return xlrd.open_workbook(str(path), formatting_info=True)
 
 
